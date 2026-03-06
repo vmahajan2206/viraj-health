@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Health Reset">
+<meta name="theme-color" content="#0a0c10">
+<title>Viraj — Health Reset</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.8.0/Recharts.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+:root {
+  --bg: #0a0c10; --surface: #111318; --surface2: #181c23; --surface3: #1e2330;
+  --border: #1f2430; --border2: #2a3040;
+  --accent: #4ade80; --accent2: #38bdf8; --accent3: #fb923c; --accent4: #f472b6; --accent5: #a78bfa;
+  --text: #e8eaf0; --text2: #9ca3af; --muted: #6b7280;
+  --warn: #fbbf24; --danger: #f87171;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body,#root { height:100%; background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; overflow:hidden; }
+body { padding-top: var(--safe-top); }
+
+/* Scrollable containers */
+.scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.scroll::-webkit-scrollbar { display:none; }
+
+/* Bottom nav */
+.bnav {
+  position:fixed; bottom:0; left:0; right:0;
+  background:rgba(17,19,24,0.95);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  display:flex;
+  padding-bottom: var(--safe-bottom);
+  z-index:100;
+}
+.bnav-item {
+  flex:1; display:flex; flex-direction:column; align-items:center;
+  padding:10px 0 8px; cursor:pointer; border:none; background:none;
+  color:var(--muted); font-family:'DM Sans',sans-serif; transition:color 0.2s;
+  font-size:10px; gap:4px;
+}
+.bnav-item.active { color:var(--accent); }
+.bnav-item svg { width:22px; height:22px; }
+.bnav-dot { width:4px; height:4px; border-radius:50%; background:var(--accent); margin-top:2px; }
+
+/* Page container */
+.page {
+  position:absolute; inset:0;
+  padding-bottom:calc(64px + var(--safe-bottom));
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+}
+.page::-webkit-scrollbar { display:none; }
+.page-inner { padding:20px 16px 20px; max-width:600px; margin:0 auto; }
+
+/* Typography */
+.syne { font-family:'Syne',sans-serif; }
+.font-800 { font-weight:800; }
+.font-700 { font-weight:700; }
+.font-600 { font-weight:600; }
+
+/* Cards */
+.card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:12px;
+}
+.card-sm { border-radius:12px; padding:12px 14px; margin-bottom:8px; }
+
+/* Buttons */
+.btn {
+  border:none; border-radius:10px; padding:10px 18px;
+  font-family:'DM Sans',sans-serif; font-weight:500; font-size:14px;
+  cursor:pointer; transition:all 0.15s; display:inline-flex; align-items:center; gap:6px;
+}
+.btn-primary { background:var(--accent); color:#000; }
+.btn-primary:active { opacity:0.85; transform:scale(0.97); }
+.btn-ghost { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+.btn-ghost:active { opacity:0.8; }
+.btn-danger { background:rgba(248,113,113,0.15); color:var(--danger); border:1px solid rgba(248,113,113,0.2); }
+
+/* Inputs */
+.input {
+  width:100%; background:var(--surface2); border:1px solid var(--border);
+  border-radius:10px; padding:10px 14px; color:var(--text);
+  font-family:'DM Sans',sans-serif; font-size:14px; outline:none;
+}
+.input:focus { border-color:var(--accent2); }
+
+/* Tag pills */
+.pill {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600;
+  text-transform:uppercase; letter-spacing:0.5px;
+}
+.pill-green { background:rgba(74,222,128,0.12); color:var(--accent); }
+.pill-blue { background:rgba(56,189,248,0.12); color:var(--accent2); }
+.pill-orange { background:rgba(251,146,60,0.12); color:var(--accent3); }
+.pill-pink { background:rgba(244,114,182,0.12); color:var(--accent4); }
+.pill-purple { background:rgba(167,139,250,0.12); color:var(--accent5); }
+.pill-warn { background:rgba(251,191,36,0.12); color:var(--warn); }
+
+/* Task item */
+.task-item {
+  display:flex; align-items:center; gap:12px;
+  padding:13px 14px; background:var(--surface);
+  border:1px solid var(--border); border-radius:12px; margin-bottom:7px;
+  cursor:pointer; transition:all 0.15s; position:relative; overflow:hidden;
+}
+.task-item::before {
+  content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+}
+.task-item.done { opacity:0.45; }
+.task-item:active { transform:scale(0.99); }
+
+.task-check {
+  width:24px; height:24px; border-radius:50%; border:2px solid var(--border2);
+  flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  font-size:12px; transition:all 0.2s;
+}
+.task-item.done .task-check { background:var(--accent); border-color:var(--accent); color:#000; font-weight:700; }
+
+/* Progress ring */
+.ring-wrap { position:relative; display:inline-flex; align-items:center; justify-content:center; }
+.ring-label { position:absolute; text-align:center; }
+
+/* Streak counter */
+.streak-grid { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.streak-card {
+  flex:1; min-width:80px; background:var(--surface2); border:1px solid var(--border);
+  border-radius:10px; padding:10px 12px;
+}
+.streak-num { font-family:'Syne',sans-serif; font-weight:800; font-size:22px; }
+.streak-label { font-size:11px; color:var(--muted); margin-top:2px; }
+
+/* Chart container */
+.chart-wrap { width:100%; overflow-x:auto; }
+
+/* Log entry */
+.log-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 0; border-bottom:1px solid var(--border);
+}
+.log-row:last-child { border-bottom:none; }
+
+/* Modal overlay */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(4px); z-index:200;
+  display:flex; align-items:flex-end; justify-content:center;
+}
+.modal-sheet {
+  background:var(--surface); border-radius:20px 20px 0 0;
+  border:1px solid var(--border); border-bottom:none;
+  width:100%; max-width:600px; padding:20px 20px calc(20px + var(--safe-bottom));
+  max-height:85vh; overflow-y:auto;
+}
+.modal-handle { width:36px; height:4px; background:var(--border2); border-radius:2px; margin:0 auto 20px; }
+
+/* Notification banner */
+.notif-banner {
+  position:fixed; top:calc(var(--safe-top) + 10px); left:10px; right:10px;
+  background:var(--surface); border:1px solid var(--border); border-radius:14px;
+  padding:14px 16px; z-index:300; display:flex; align-items:center; gap:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.5); transition:all 0.3s;
+  transform:translateY(0);
+}
+.notif-banner.hide { transform:translateY(-120px); opacity:0; }
+
+/* Section header */
+.sec-header {
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;
+}
+.sec-title { font-family:'Syne',sans-serif; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:1.5px; color:var(--text2); }
+
+/* Ambient bg */
+.ambient { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+.ambient::before { content:''; position:absolute; top:-150px; left:-150px; width:400px; height:400px; background:radial-gradient(circle,rgba(74,222,128,0.04) 0%,transparent 70%); }
+.ambient::after { content:''; position:absolute; bottom:-150px; right:-150px; width:350px; height:350px; background:radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 70%); }
+
+/* Toggle switch */
+.toggle { position:relative; width:44px; height:24px; flex-shrink:0; }
+.toggle input { opacity:0; width:0; height:0; }
+.toggle-slider {
+  position:absolute; inset:0; background:var(--border2); border-radius:24px;
+  cursor:pointer; transition:0.2s;
+}
+.toggle-slider::before {
+  content:''; position:absolute; width:18px; height:18px; left:3px; bottom:3px;
+  background:#fff; border-radius:50%; transition:0.2s;
+}
+input:checked + .toggle-slider { background:var(--accent); }
+input:checked + .toggle-slider::before { transform:translateX(20px); }
+
+/* Range slider */
+input[type=range] { -webkit-appearance:none; width:100%; height:4px; border-radius:2px; background:var(--border2); outline:none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:var(--accent); cursor:pointer; }
+
+/* Dot calendar */
+.dot-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.dot-day { aspect-ratio:1; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:600; }
+
+/* Misc */
+.divider { height:1px; background:var(--border); margin:14px 0; }
+.flex { display:flex; }
+.flex-center { display:flex; align-items:center; }
+.flex-between { display:flex; align-items:center; justify-content:space-between; }
+.gap-8 { gap:8px; }
+.gap-12 { gap:12px; }
+.col { flex-direction:column; }
+.mt-4 { margin-top:4px; }
+.mt-8 { margin-top:8px; }
+.mt-12 { margin-top:12px; }
+.mt-16 { margin-top:16px; }
+.mb-8 { margin-bottom:8px; }
+.mb-12 { margin-bottom:12px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, RadarChart, PolarGrid, PolarAngleAxis, Radar } = Recharts;
+
+// ─── STORAGE ────────────────────────────────────────────────────────────────
+const DB = {
+  get: (k, def = null) => { try { const v = localStorage.getItem('vhr_' + k); return v ? JSON.parse(v) : def; } catch { return def; } },
+  set: (k, v) => { try { localStorage.setItem('vhr_' + k, JSON.stringify(v)); } catch {} },
+};
+
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const DEFAULT_TASKS = [
+  { id:'wake',  time:'8:30 AM',  title:'Wake up + Water',       note:'1 glass water before anything else',       cat:'morning', color:'#fbbf24' },
+  { id:'walk',  time:'9:00 AM',  title:'30-min Morning Walk',   note:'Outside. No headphones. Sunlight = Vit D', cat:'walk',    color:'#4ade80' },
+  { id:'supp1', time:'9:30 AM',  title:'Morning Supplements',   note:'D3+K2, B12 sublingual, Biotin, Omega-3',   cat:'supp',    color:'#f472b6' },
+  { id:'bfast', time:'9:45 AM',  title:'Breakfast',             note:'Eggs + paratha + fruit + coffee',          cat:'meal',    color:'#fb923c' },
+  { id:'lunch', time:'1:00 PM',  title:'Lunch',                 note:'Rice + dal + sabji + curd bowl',           cat:'meal',    color:'#fb923c' },
+  { id:'zinc',  time:'2:00 PM',  title:'Zinc Picolinate 30mg',  note:'After lunch, not on empty stomach',        cat:'supp',    color:'#f472b6' },
+  { id:'eve',   time:'5:30 PM',  title:'Evening Snack',         note:'Coffee + pistachios or fruit',             cat:'meal',    color:'#fb923c' },
+  { id:'din',   time:'8:00 PM',  title:'Dinner (before 9 PM)',  note:'2 rotis + sabji/paneer/egg. Hard stop 9PM',cat:'meal',    color:'#fb923c' },
+  { id:'supp2', time:'9:30 PM',  title:'Evening Supplements',   note:'Ashwagandha 600mg + Magnesium 400mg',      cat:'supp',    color:'#f472b6' },
+  { id:'screen','time':'11:45 PM',title:'Screen Off',            note:'Phone + laptop down. Melatonin window.',   cat:'sleep',   color:'#38bdf8' },
+  { id:'sleep', time:'12:00 AM', title:'Lights Out',            note:'Testosterone produced 10PM-2AM in sleep',  cat:'sleep',   color:'#38bdf8' },
+];
+
+const DEFAULT_SUPPS = [
+  { id:'s1', name:'Vitamin D3 + K2', dose:'5000 IU + 100mcg', when:'Morning' },
+  { id:'s2', name:'Vitamin B12',      dose:'1500mcg sublingual', when:'Morning' },
+  { id:'s3', name:'Biotin',           dose:'5000mcg', when:'Morning' },
+  { id:'s4', name:'Omega-3',          dose:'2000mg', when:'Lunch' },
+  { id:'s5', name:'Zinc Picolinate',  dose:'30mg', when:'After Lunch' },
+  { id:'s6', name:'Ashwagandha',      dose:'600mg KSM-66', when:'Night' },
+  { id:'s7', name:'Magnesium',        dose:'400mg Glycinate', when:'Bedtime' },
+];
+
+const MEALS_WEEK = {
+  0: null, // Sunday cheat
+  1: { b:'2 eggs + 1 paratha + coffee + apple', l:'Rice + dal + sabji + curd', e:'Coffee + pistachios', d:'2 rotis + egg bhurji + sabji' },
+  2: { b:'3-egg omelette + paratha + coffee', l:'Dal khichdi + curd + sabji', e:'Coffee + fruit', d:'2 rotis + dal tadka + sabji' },
+  3: { b:'2 boiled eggs + paratha + coffee + banana', l:'Rice + rajma + curd', e:'Coffee + fruit', d:'2 rotis + egg curry + sabji' },
+  4: { b:'Scrambled eggs (3) + roti + coffee', l:'Dal + rice + curd + sabji', e:'Coffee + pistachios', d:'2 rotis + mix veg + curd' },
+  5: { b:'2 eggs + paratha + coffee + apple', l:'Dal + rice + curd + veg', e:'Coffee + fruit + nuts', d:'2 rotis + paneer or dal' },
+  6: { b:'Egg omelette (3) + paratha + coffee', l:'Dal khichdi + curd', e:'Coffee + handful nuts', d:'2 rotis + paneer or dal + salad' },
+};
+
+const MOTIVATIONS = [
+  "Testosterone at 270 is fixable. Every morning walk is raising it.",
+  "B12 was below range. Your supplements today are repairing what took months to deplete.",
+  "Vitamin D at 14.40. This morning's walk is literally medicine.",
+  "Sleep before midnight = testosterone production. This is biochemistry, not motivation.",
+  "Resting HR: 77. Every walk pulls that number down.",
+  "Hair fall accelerated in 6-12 months. The plan you're on now is the reversal.",
+  "The version of you at 40 is decided right now. One task at a time.",
+];
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+const todayStr = () => new Date().toISOString().slice(0,10);
+const dateStr = (d) => d.toISOString().slice(0,10);
+const last30Days = () => { const a=[]; for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);a.push(dateStr(d));} return a; };
+const last7Days = () => { const a=[]; for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);a.push(dateStr(d));} return a; };
+
+// ─── NOTIFICATION SYSTEM ─────────────────────────────────────────────────────
+function scheduleNotifications(tasks) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  // Use setTimeout-based in-app notifications (PWA background push needs a server)
+  // This fires while app is open — pairs with calendar for background
+  const now = new Date();
+  tasks.forEach(task => {
+    const [time, period] = [task.time.slice(0,-3), task.time.slice(-2)];
+    let [h, m] = time.split(':').map(Number);
+    if (period === 'PM' && h !== 12) h += 12;
+    if (period === 'AM' && h === 12) h = 0;
+    const target = new Date();
+    target.setHours(h, m, 0, 0);
+    const diff = target - now;
+    if (diff > 0 && diff < 86400000) {
+      setTimeout(() => {
+        new Notification('Health Reset — Viraj', {
+          body: `${task.title}: ${task.note}`,
+          icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%234ade80"/><text y=".9em" font-size="70" x="15">💪</text></svg>',
+          badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%234ade80"/></svg>',
+          tag: task.id,
+          renotify: true,
+        });
+      }, diff);
+    }
+  });
+}
+
+// ─── COMPONENTS ──────────────────────────────────────────────────────────────
+
+function RingProgress({ pct, size=90, stroke=7, color='#4ade80' }) {
+  const r = (size-stroke*2)/2;
+  const circ = 2*Math.PI*r;
+  const offset = circ - (pct/100)*circ;
+  return (
+    <div className="ring-wrap" style={{width:size,height:size}}>
+      <svg width={size} height={size} style={{transform:'rotate(-90deg)'}}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--border2)" strokeWidth={stroke}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color}
+          strokeWidth={stroke} strokeLinecap="round"
+          strokeDasharray={circ} strokeDashoffset={offset}
+          style={{transition:'stroke-dashoffset 0.6s ease'}}/>
+      </svg>
+      <div className="ring-label">
+        <div className="syne font-800" style={{fontSize:20,color}}>{pct}%</div>
+        <div style={{fontSize:9,color:'var(--muted)',textTransform:'uppercase',letterSpacing:1}}>done</div>
+      </div>
+    </div>
+  );
+}
+
+function NotifBanner({ msg, visible }) {
+  return (
+    <div className={`notif-banner${visible?'':' hide'}`}>
+      <div style={{fontSize:20}}>💪</div>
+      <div>
+        <div className="syne font-700" style={{fontSize:13}}>Health Reset</div>
+        <div style={{fontSize:12,color:'var(--text2)',marginTop:2}}>{msg}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── TODAY TAB ───────────────────────────────────────────────────────────────
+function TodayTab({ tasks, setTasks }) {
+  const today = todayStr();
+  const dayIdx = new Date().getDay();
+  const logs = DB.get('logs', {});
+  const todayLog = logs[today] || { tasks:{}, supps:[] };
+
+  const [taskState, setTaskState] = useState(todayLog.tasks || {});
+  const [suppState, setSuppState] = useState(todayLog.supps || []);
+  const [notifMsg, setNotifMsg] = useState('');
+  const [notifVisible, setNotifVisible] = useState(false);
+
+  const showNotif = (msg) => { setNotifMsg(msg); setNotifVisible(true); setTimeout(()=>setNotifVisible(false),2500); };
+
+  const saveLog = (ts, ss) => {
+    const logs = DB.get('logs', {});
+    logs[today] = { tasks: ts, supps: ss, date: today };
+    DB.set('logs', logs);
+    // Update streak
+    const meta = DB.get('meta', { streak:0, best:0, lastDate:'' });
+    const total = tasks.length + DEFAULT_SUPPS.length;
+    const done = Object.values(ts).filter(Boolean).length + ss.length;
+    if (done === total && meta.lastDate !== today) {
+      meta.streak += 1;
+      meta.best = Math.max(meta.best, meta.streak);
+      meta.lastDate = today;
+      DB.set('meta', meta);
+    }
+  };
+
+  const toggleTask = (id, title) => {
+    const ns = { ...taskState, [id]: !taskState[id] };
+    setTaskState(ns);
+    saveLog(ns, suppState);
+    if (!taskState[id]) showNotif(`✓ ${title}`);
+  };
+
+  const toggleSupp = (id, name) => {
+    const ns = suppState.includes(id) ? suppState.filter(s=>s!==id) : [...suppState, id];
+    setSuppState(ns);
+    saveLog(taskState, ns);
+    if (!suppState.includes(id)) showNotif(`✓ ${name} taken`);
+  };
+
+  const doneTasks = Object.values(taskState).filter(Boolean).length;
+  const doneSupps = suppState.length;
+  const total = tasks.length + DEFAULT_SUPPS.length;
+  const done = doneTasks + doneSupps;
+  const pct = total ? Math.round((done/total)*100) : 0;
+
+  const meta = DB.get('meta', { streak:0, best:0 });
+  const now = new Date();
+  const meal = MEALS_WEEK[dayIdx];
+
+  const catColor = { morning:'#fbbf24', walk:'#4ade80', supp:'#f472b6', meal:'#fb923c', sleep:'#38bdf8' };
+
+  return (
+    <div className="page">
+      <NotifBanner msg={notifMsg} visible={notifVisible}/>
+      <div className="page-inner">
+
+        {/* Header */}
+        <div className="flex-between mb-12">
+          <div>
+            <div className="syne font-800" style={{fontSize:24}}>
+              {pct===100 ? '🎯 Crushed it' : pct>60 ? '💪 Keep going' : 'Good morning'}
+              <span style={{color:'var(--accent)'}}> Viraj</span>
+            </div>
+            <div style={{fontSize:12,color:'var(--muted)',marginTop:3}}>
+              {DAYS[now.getDay()]}, {now.getDate()} {MONTHS[now.getMonth()]} {now.getFullYear()}
+            </div>
+          </div>
+          <RingProgress pct={pct} color={pct===100?'#4ade80':pct>60?'#38bdf8':'#fb923c'}/>
+        </div>
+
+        {/* Motivation */}
+        <div className="card" style={{background:'linear-gradient(135deg,rgba(74,222,128,0.06),rgba(56,189,248,0.06))',borderColor:'rgba(74,222,128,0.15)',marginBottom:12}}>
+          <div style={{fontSize:11,color:'var(--accent)',fontWeight:600,textTransform:'uppercase',letterSpacing:1,marginBottom:4}}>Daily Insight</div>
+          <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.5}}>{MOTIVATIONS[now.getDay()%MOTIVATIONS.length]}</div>
+        </div>
+
+        {/* Streak row */}
+        <div className="streak-grid">
+          {[
+            {num:meta.streak,label:'Day Streak',color:'#4ade80'},
+            {num:meta.best,label:'Best Streak',color:'#fbbf24'},
+            {num:`${done}/${total}`,label:'Today',color:'#38bdf8'},
+          ].map((s,i)=>(
+            <div key={i} className="streak-card">
+              <div className="streak-num syne" style={{color:s.color}}>{s.num}</div>
+              <div className="streak-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Tasks */}
+        <div style={{marginTop:20}}>
+          <div className="sec-header">
+            <span className="sec-title">Today's Schedule</span>
+            <span style={{fontSize:11,color:'var(--muted)'}}>{doneTasks}/{tasks.length} done</span>
+          </div>
+          {tasks.map(task => (
+            <div key={task.id} className={`task-item${taskState[task.id]?' done':''}`}
+              style={{'--tw-border':task.color}} onClick={()=>toggleTask(task.id, task.title)}>
+              <div style={{position:'absolute',left:0,top:0,bottom:0,width:3,background:catColor[task.cat]||task.color,borderRadius:'12px 0 0 12px'}}/>
+              <div className="task-check">{taskState[task.id]?'✓':''}</div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:14,fontWeight:500}}>{task.title}</div>
+                <div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{task.time} · {task.note}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Supplements */}
+        <div style={{marginTop:20}}>
+          <div className="sec-header">
+            <span className="sec-title">Supplements</span>
+            <span style={{fontSize:11,color:'var(--muted)'}}>{doneSupps}/{DEFAULT_SUPPS.length} taken</span>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}>
+            {DEFAULT_SUPPS.map(s => {
+              const taken = suppState.includes(s.id);
+              return (
+                <div key={s.id} onClick={()=>toggleSupp(s.id, s.name)}
+                  style={{background:'var(--surface)',border:`1px solid ${taken?'var(--accent)':'var(--border)'}`,borderRadius:10,padding:'10px 12px',cursor:'pointer',opacity:taken?0.5:1,transition:'all 0.2s'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6}}>
+                    <div style={{width:6,height:6,borderRadius:'50%',background:taken?'var(--accent)':'var(--accent4)',flexShrink:0}}/>
+                    <div style={{fontSize:12,fontWeight:500}}>{s.name}</div>
+                  </div>
+                  <div style={{fontSize:11,color:'var(--muted)',marginTop:3}}>{s.dose} · {s.when}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Today's meals */}
+        <div style={{marginTop:20}}>
+          <div className="sec-header"><span className="sec-title">Today's Meals</span></div>
+          {!meal ? (
+            <div className="card" style={{background:'linear-gradient(135deg,rgba(251,146,60,0.08),rgba(244,114,182,0.08))',borderColor:'rgba(251,146,60,0.3)',textAlign:'center'}}>
+              <div style={{fontSize:24,marginBottom:8}}>🎉</div>
+              <div className="syne font-700" style={{fontSize:16,color:'var(--accent3)'}}>CHEAT DAY</div>
+              <div style={{fontSize:13,color:'var(--text2)',marginTop:6}}>Eat whatever you want today. You followed the plan all week. Enjoy it fully. No food after midnight.</div>
+            </div>
+          ) : (
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}>
+              {[['Breakfast','9:45 AM',meal.b],['Lunch','1:00 PM',meal.l],['Evening','5:30 PM',meal.e],['Dinner','by 9 PM',meal.d]].map(([t,time,desc])=>(
+                <div key={t} style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:10,padding:'10px 12px'}}>
+                  <div style={{fontSize:10,color:'var(--accent3)',fontWeight:600,textTransform:'uppercase',letterSpacing:0.5}}>{t} · {time}</div>
+                  <div style={{fontSize:12,color:'var(--text)',marginTop:4,lineHeight:1.4}}>{desc}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Log daily metrics */}
+        <DailyLogSection today={today}/>
+
+      </div>
+    </div>
+  );
+}
+
+function DailyLogSection({ today }) {
+  const [open, setOpen] = useState(false);
+  const saved = DB.get('daily_'+today, { weight:'', sleep:'', energy:3, notes:'' });
+  const [form, setForm] = useState(saved);
+
+  const save = (f) => { setForm(f); DB.set('daily_'+today, f); };
+
+  return (
+    <div style={{marginTop:20}}>
+      <div className="sec-header" onClick={()=>setOpen(!open)} style={{cursor:'pointer'}}>
+        <span className="sec-title">Daily Log</span>
+        <span style={{color:'var(--accent2)',fontSize:12}}>{open?'Close ↑':'Add entry ↓'}</span>
+      </div>
+      {open && (
+        <div className="card">
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}}>
+            <div>
+              <div style={{fontSize:11,color:'var(--muted)',marginBottom:5}}>Weight (kg)</div>
+              <input className="input" type="number" placeholder="89" value={form.weight}
+                onChange={e=>save({...form,weight:e.target.value})} style={{fontSize:14}}/>
+            </div>
+            <div>
+              <div style={{fontSize:11,color:'var(--muted)',marginBottom:5}}>Sleep (hrs)</div>
+              <input className="input" type="number" step="0.5" placeholder="6.5" value={form.sleep}
+                onChange={e=>save({...form,sleep:e.target.value})} style={{fontSize:14}}/>
+            </div>
+          </div>
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:11,color:'var(--muted)',marginBottom:8}}>Energy Level: <span style={{color:'var(--accent)'}}>{['','😴 Drained','😕 Low','😐 Okay','🙂 Good','⚡ High'][form.energy]}</span></div>
+            <input type="range" min="1" max="5" value={form.energy} onChange={e=>save({...form,energy:+e.target.value})}/>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--muted)',marginTop:4}}>
+              <span>Drained</span><span>High</span>
+            </div>
+          </div>
+          <div>
+            <div style={{fontSize:11,color:'var(--muted)',marginBottom:5}}>Notes (optional)</div>
+            <textarea className="input" rows="2" placeholder="How do you feel? Any observations..." value={form.notes}
+              onChange={e=>save({...form,notes:e.target.value})} style={{resize:'none',fontSize:13,lineHeight:1.4}}/>
+          </div>
+          <div style={{fontSize:11,color:'var(--accent)',marginTop:8}}>✓ Auto-saved</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── ANALYTICS TAB ───────────────────────────────────────────────────────────
+function AnalyticsTab({ tasks }) {
+  const [period, setPeriod] = useState(7);
+  const logs = DB.get('logs', {});
+  const days = period === 7 ? last7Days() : last30Days();
+
+  const chartData = days.map(d => {
+    const log = logs[d] || {};
+    const taskDone = Object.values(log.tasks||{}).filter(Boolean).length;
+    const suppDone = (log.supps||[]).length;
+    const total = tasks.length + DEFAULT_SUPPS.length;
+    const pct = total ? Math.round(((taskDone+suppDone)/total)*100) : 0;
+    const daily = DB.get('daily_'+d, {});
+    return {
+      day: d.slice(5),
+      pct,
+      tasks: taskDone,
+      supps: suppDone,
+      sleep: parseFloat(daily.sleep)||0,
+      energy: daily.energy||0,
+      weight: parseFloat(daily.weight)||0,
+    };
+  });
+
+  // Task-level breakdown for last 7
+  const taskBreakdown = tasks.map(t => {
+    const hits = last7Days().filter(d => (logs[d]?.tasks||{})[t.id]).length;
+    return { name: t.title.slice(0,18), hits, pct: Math.round((hits/7)*100) };
+  });
+
+  const suppBreakdown = DEFAULT_SUPPS.map(s => {
+    const hits = last7Days().filter(d => (logs[d]?.supps||[]).includes(s.id)).length;
+    return { name: s.name, hits, pct: Math.round((hits/7)*100) };
+  });
+
+  const avgPct = chartData.length ? Math.round(chartData.reduce((a,b)=>a+b.pct,0)/chartData.length) : 0;
+  const avgSleep = chartData.filter(d=>d.sleep>0).length ? (chartData.filter(d=>d.sleep>0).reduce((a,b)=>a+b.sleep,0)/chartData.filter(d=>d.sleep>0).length).toFixed(1) : '--';
+  const latestWeight = [...days].reverse().map(d=>DB.get('daily_'+d,{})).find(d=>d.weight)?.weight || '--';
+
+  const tooltipStyle = { background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:8, fontSize:12, color:'var(--text)' };
+
+  return (
+    <div className="page">
+      <div className="page-inner">
+        <div className="syne font-800" style={{fontSize:22,marginBottom:4}}>Analytics</div>
+        <div style={{fontSize:12,color:'var(--muted)',marginBottom:16}}>Track what's working and what needs attention</div>
+
+        {/* Period toggle */}
+        <div style={{display:'flex',gap:8,marginBottom:16}}>
+          {[7,30].map(p=>(
+            <button key={p} className="btn" onClick={()=>setPeriod(p)}
+              style={{background:period===p?'var(--accent)':'var(--surface2)',color:period===p?'#000':'var(--text)',border:`1px solid ${period===p?'var(--accent)':'var(--border)'}`,fontSize:13,padding:'8px 16px'}}>
+              {p} Days
+            </button>
+          ))}
+        </div>
+
+        {/* Summary cards */}
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:16}}>
+          {[
+            {label:'Avg Compliance',val:`${avgPct}%`,color:'#4ade80'},
+            {label:'Avg Sleep',val:`${avgSleep}h`,color:'#38bdf8'},
+            {label:'Weight',val:`${latestWeight}${latestWeight!=='--'?'kg':''}`,color:'#fb923c'},
+          ].map((s,i)=>(
+            <div key={i} style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:12,padding:'12px',textAlign:'center'}}>
+              <div className="syne font-800" style={{fontSize:20,color:s.color}}>{s.val}</div>
+              <div style={{fontSize:10,color:'var(--muted)',marginTop:3}}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Compliance chart */}
+        <div className="card">
+          <div className="sec-title mb-8">Daily Completion %</div>
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={chartData} margin={{top:5,right:5,left:-20,bottom:0}}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false}/>
+              <XAxis dataKey="day" tick={{fontSize:10,fill:'var(--muted)'}} axisLine={false} tickLine={false}/>
+              <YAxis domain={[0,100]} tick={{fontSize:10,fill:'var(--muted)'}} axisLine={false} tickLine={false}/>
+              <Tooltip contentStyle={tooltipStyle} formatter={(v)=>[`${v}%`,'Completion']}/>
+              <Bar dataKey="pct" fill="#4ade80" radius={[4,4,0,0]}/>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Sleep chart */}
+        <div className="card">
+          <div className="sec-title mb-8">Sleep Hours</div>
+          <ResponsiveContainer width="100%" height={130}>
+            <LineChart data={chartData} margin={{top:5,right:5,left:-20,bottom:0}}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false}/>
+              <XAxis dataKey="day" tick={{fontSize:10,fill:'var(--muted)'}} axisLine={false} tickLine={false}/>
+              <YAxis domain={[0,10]} tick={{fontSize:10,fill:'var(--muted)'}} axisLine={false} tickLine={false}/>
+              <Tooltip contentStyle={tooltipStyle} formatter={(v)=>[`${v}h`,'Sleep']}/>
+              <Line type="monotone" dataKey="sleep" stroke="#38bdf8" strokeWidth={2} dot={{fill:'#38bdf8',r:3}} activeDot={{r:5}}/>
+            </LineChart>
+          </ResponsiveContainer>
+          <div style={{display:'flex',alignItems:'center',gap:6,marginTop:8}}>
+            <div style={{width:12,height:2,background:'#38bdf8',borderRadius:1}}/>
+            <div style={{fontSize:11,color:'var(--muted)'}}>Target: 7-8 hours · Your average: {avgSleep}h</div>
+          </div>
+        </div>
+
+        {/* Energy chart */}
+        <div className="card">
+          <div className="sec-title mb-8">Energy Levels (1-5)</div>
+          <ResponsiveContainer width="100%" height={120}>
+            <LineChart data={chartData} margin={{top:5,right:5,left:-20,bottom:0}}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false}/>
+              <XAxis dataKey="day" tick={{fontSize:10,fill:'var(--muted)'}} axisLine={false} tickLine={false}/>
+              <YAxis domain={[0,5]} tick={{fontSize:10,fill:'var(--muted)'}} axisLine={false} tickLine={false}/>
+              <Tooltip contentStyle={tooltipStyle}/>
+              <Line type="monotone" dataKey="energy" stroke="#fbbf24" strokeWidth={2} dot={{fill:'#fbbf24',r:3}} activeDot={{r:5}}/>
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Habit breakdown */}
+        <div className="card">
+          <div className="sec-title mb-8">Habit Hit Rate — Last 7 Days</div>
+          {taskBreakdown.map((t,i)=>(
+            <div key={i} style={{marginBottom:10}}>
+              <div className="flex-between" style={{marginBottom:4}}>
+                <div style={{fontSize:12,color:'var(--text2)'}}>{t.name}</div>
+                <div style={{fontSize:12,fontWeight:600,color:t.pct>=70?'var(--accent)':t.pct>=40?'var(--warn)':'var(--danger)'}}>{t.hits}/7</div>
+              </div>
+              <div style={{height:5,background:'var(--border2)',borderRadius:3}}>
+                <div style={{height:5,borderRadius:3,width:`${t.pct}%`,background:t.pct>=70?'var(--accent)':t.pct>=40?'var(--warn)':'var(--danger)',transition:'width 0.5s'}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Supplement adherence */}
+        <div className="card">
+          <div className="sec-title mb-8">Supplement Adherence — Last 7 Days</div>
+          {suppBreakdown.map((s,i)=>(
+            <div key={i} style={{marginBottom:10}}>
+              <div className="flex-between" style={{marginBottom:4}}>
+                <div style={{fontSize:12,color:'var(--text2)'}}>{s.name}</div>
+                <div style={{fontSize:12,fontWeight:600,color:s.pct>=70?'var(--accent4)':s.pct>=40?'var(--warn)':'var(--danger)'}}>{s.hits}/7</div>
+              </div>
+              <div style={{height:5,background:'var(--border2)',borderRadius:3}}>
+                <div style={{height:5,borderRadius:3,width:`${s.pct}%`,background:s.pct>=70?'var(--accent4)':s.pct>=40?'var(--warn)':'var(--danger)',transition:'width 0.5s'}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 30-day dot calendar */}
+        <div className="card">
+          <div className="sec-title mb-8">30-Day Activity Map</div>
+          <div style={{display:'flex',gap:4,marginBottom:8}}>
+            {DAYS.map(d=><div key={d} style={{flex:1,textAlign:'center',fontSize:9,color:'var(--muted)'}}>{d[0]}</div>)}
+          </div>
+          <div className="dot-cal">
+            {last30Days().map(d=>{
+              const log=logs[d]||{};
+              const taskDone=Object.values(log.tasks||{}).filter(Boolean).length;
+              const suppDone=(log.supps||[]).length;
+              const total=tasks.length+DEFAULT_SUPPS.length;
+              const pct=total?Math.round(((taskDone+suppDone)/total)*100):0;
+              const bg=pct>=80?'rgba(74,222,128,0.8)':pct>=50?'rgba(251,191,36,0.6)':pct>0?'rgba(251,146,60,0.4)':'var(--border)';
+              return <div key={d} className="dot-day" style={{background:bg,title:d}}><span style={{fontSize:8,color:pct>0?'rgba(255,255,255,0.7)':'transparent'}}>{d.slice(8)}</span></div>;
+            })}
+          </div>
+          <div style={{display:'flex',gap:12,marginTop:10,flexWrap:'wrap'}}>
+            {[['#4ade80','80-100%'],['#fbbf24','50-79%'],['#fb923c','1-49%'],['var(--border)','None']].map(([c,l])=>(
+              <div key={l} style={{display:'flex',alignItems:'center',gap:4,fontSize:10,color:'var(--muted)'}}>
+                <div style={{width:10,height:10,borderRadius:2,background:c}}/>{l}
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+// ─── CUSTOMIZE TAB ───────────────────────────────────────────────────────────
+function CustomizeTab({ tasks, setTasks }) {
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({});
+  const [notifPerm, setNotifPerm] = useState(Notification?.permission || 'default');
+  const [phase, setPhase] = useState(DB.get('phase', 3));
+
+  const requestNotif = async () => {
+    if (!('Notification' in window)) { alert('Notifications not supported in this browser.'); return; }
+    const p = await Notification.requestPermission();
+    setNotifPerm(p);
+    if (p === 'granted') scheduleNotifications(tasks);
+  };
+
+  const openEdit = (task) => { setEditing(task.id); setForm({...task}); };
+  const saveEdit = () => {
+    const nt = tasks.map(t => t.id===editing ? form : t);
+    setTasks(nt);
+    DB.set('custom_tasks', nt);
+    setEditing(null);
+  };
+  const resetTasks = () => { setTasks(DEFAULT_TASKS); DB.set('custom_tasks', null); };
+  const setPhaseAndSave = (p) => { setPhase(p); DB.set('phase', p); };
+
+  return (
+    <div className="page">
+      <div className="page-inner">
+        <div className="syne font-800" style={{fontSize:22,marginBottom:4}}>Customize</div>
+        <div style={{fontSize:12,color:'var(--muted)',marginBottom:16}}>Adjust your schedule, notifications, and phase</div>
+
+        {/* Phase selector */}
+        <div className="card">
+          <div className="sec-title mb-8">Current Phase</div>
+          <div style={{display:'flex',gap:8}}>
+            {[1,2,3].map(p=>(
+              <button key={p} className="btn" onClick={()=>setPhaseAndSave(p)}
+                style={{flex:1,background:phase===p?'var(--accent2)':'var(--surface2)',color:phase===p?'#000':'var(--text)',border:`1px solid ${phase===p?'var(--accent2)':'var(--border)'}`,fontSize:13}}>
+                Phase {p}
+              </button>
+            ))}
+          </div>
+          <div style={{fontSize:12,color:'var(--text2)',marginTop:10,lineHeight:1.5}}>
+            {phase===1 && 'Phase 1: 3 core habits only — sleep anchor, 15-min walk, eat before 9 PM'}
+            {phase===2 && 'Phase 2: Core habits + 25-30 min walk + diet plan + supplements begin'}
+            {phase===3 && 'Phase 3: Full routine — 30-40 min walk, resistance training, full supplement stack, 12 AM bedtime'}
+          </div>
+        </div>
+
+        {/* Notifications */}
+        <div className="card">
+          <div className="sec-title mb-8">Push Notifications</div>
+          <div style={{fontSize:13,color:'var(--text2)',marginBottom:12,lineHeight:1.5}}>
+            Status: <span style={{color:notifPerm==='granted'?'var(--accent)':notifPerm==='denied'?'var(--danger)':'var(--warn)',fontWeight:600}}>{notifPerm==='granted'?'✓ Enabled':notifPerm==='denied'?'✗ Blocked':'Not yet enabled'}</span>
+          </div>
+          {notifPerm !== 'granted' && notifPerm !== 'denied' && (
+            <button className="btn btn-primary" onClick={requestNotif} style={{width:'100%',justifyContent:'center'}}>
+              Enable Notifications
+            </button>
+          )}
+          {notifPerm === 'denied' && (
+            <div style={{fontSize:12,color:'var(--danger)',background:'rgba(248,113,113,0.08)',padding:'10px 12px',borderRadius:8}}>
+              Notifications are blocked. Go to iPhone Settings → Safari → Notifications and allow this site.
+            </div>
+          )}
+          {notifPerm === 'granted' && (
+            <div>
+              <div style={{fontSize:12,color:'var(--accent)',marginBottom:10}}>✓ You'll get notified at each scheduled time while the app is open</div>
+              <button className="btn btn-ghost" onClick={()=>scheduleNotifications(tasks)} style={{fontSize:13}}>
+                Re-schedule Today's Alerts
+              </button>
+            </div>
+          )}
+          <div style={{fontSize:11,color:'var(--muted)',marginTop:10,lineHeight:1.4}}>
+            For background notifications (even when app is closed), also set up Google Calendar reminders using the guide from your health plan document.
+          </div>
+        </div>
+
+        {/* Edit tasks */}
+        <div className="card">
+          <div className="flex-between mb-8">
+            <span className="sec-title">Edit Schedule</span>
+            <button className="btn btn-ghost" onClick={resetTasks} style={{fontSize:11,padding:'5px 10px'}}>Reset to Default</button>
+          </div>
+          {tasks.map(task=>(
+            <div key={task.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid var(--border)'}}>
+              <div>
+                <div style={{fontSize:13,fontWeight:500}}>{task.title}</div>
+                <div style={{fontSize:11,color:'var(--muted)'}}>{task.time}</div>
+              </div>
+              <button className="btn btn-ghost" onClick={()=>openEdit(task)} style={{fontSize:12,padding:'6px 12px'}}>Edit</button>
+            </div>
+          ))}
+        </div>
+
+        {/* Reset data */}
+        <div className="card">
+          <div className="sec-title mb-8">Data</div>
+          <button className="btn btn-danger" style={{width:'100%',justifyContent:'center'}}
+            onClick={()=>{if(confirm('Reset ALL data? This cannot be undone.')){Object.keys(localStorage).filter(k=>k.startsWith('vhr_')).forEach(k=>localStorage.removeItem(k));window.location.reload();}}}>
+            Reset All Data
+          </button>
+          <div style={{fontSize:11,color:'var(--muted)',marginTop:8}}>All logs, streaks, and progress will be deleted.</div>
+        </div>
+
+      </div>
+
+      {/* Edit modal */}
+      {editing && (
+        <div className="modal-overlay" onClick={(e)=>{if(e.target.className==='modal-overlay')setEditing(null)}}>
+          <div className="modal-sheet">
+            <div className="modal-handle"/>
+            <div className="syne font-700" style={{fontSize:16,marginBottom:16}}>Edit Task</div>
+            {[
+              {label:'Title',key:'title',type:'text'},
+              {label:'Time',key:'time',type:'text',placeholder:'e.g. 9:00 AM'},
+              {label:'Note',key:'note',type:'text'},
+            ].map(f=>(
+              <div key={f.key} style={{marginBottom:12}}>
+                <div style={{fontSize:11,color:'var(--muted)',marginBottom:5}}>{f.label}</div>
+                <input className="input" type={f.type} value={form[f.key]||''} placeholder={f.placeholder||''}
+                  onChange={e=>setForm({...form,[f.key]:e.target.value})}/>
+              </div>
+            ))}
+            <div style={{display:'flex',gap:10,marginTop:8}}>
+              <button className="btn btn-ghost" onClick={()=>setEditing(null)} style={{flex:1,justifyContent:'center'}}>Cancel</button>
+              <button className="btn btn-primary" onClick={saveEdit} style={{flex:1,justifyContent:'center'}}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── REPORT TAB ───────────────────────────────────────────────────────────────
+function ReportTab({ tasks }) {
+  const logs = DB.get('logs', {});
+  const days30 = last30Days();
+  const days7 = last7Days();
+
+  const compliance30 = days30.map(d=>{
+    const log=logs[d]||{};
+    const td=Object.values(log.tasks||{}).filter(Boolean).length;
+    const sd=(log.supps||[]).length;
+    const tot=tasks.length+DEFAULT_SUPPS.length;
+    return tot?Math.round(((td+sd)/tot)*100):0;
+  });
+  const avg30 = compliance30.length ? Math.round(compliance30.reduce((a,b)=>a+b,0)/compliance30.length) : 0;
+
+  const weights = days30.map(d=>parseFloat(DB.get('daily_'+d,{}).weight)||null).filter(Boolean);
+  const sleeps = days30.map(d=>parseFloat(DB.get('daily_'+d,{}).sleep)||null).filter(Boolean);
+  const energies = days30.map(d=>DB.get('daily_'+d,{}).energy||null).filter(Boolean);
+
+  const wStart = weights[0], wEnd = weights[weights.length-1];
+  const wChange = wStart&&wEnd ? (wEnd-wStart).toFixed(1) : null;
+
+  const bestDays = days30.filter(d=>{
+    const log=logs[d]||{};
+    const td=Object.values(log.tasks||{}).filter(Boolean).length;
+    const sd=(log.supps||[]).length;
+    const tot=tasks.length+DEFAULT_SUPPS.length;
+    return tot&&Math.round(((td+sd)/tot)*100)>=80;
+  }).length;
+
+  const weakHabits = tasks.filter(t=>{
+    const hits=days7.filter(d=>(logs[d]?.tasks||{})[t.id]).length;
+    return hits<4;
+  });
+
+  const meta = DB.get('meta', { streak:0, best:0 });
+
+  const insights = [];
+  if(avg30>=80) insights.push({type:'win',msg:'Exceptional consistency. 80%+ average means the habits are becoming automatic.'});
+  else if(avg30>=60) insights.push({type:'ok',msg:'Good progress. You are building the foundation. Push to 80%+ in the next stretch.'});
+  else insights.push({type:'warn',msg:'Compliance is below 60%. Focus on just 3 must-do habits: walk, sleep, eat before 9 PM.'});
+  if(wChange&&wChange<0) insights.push({type:'win',msg:`Weight down ${Math.abs(wChange)}kg over the month. The deficit is working.`});
+  if(sleeps.length&&(sleeps.reduce((a,b)=>a+b,0)/sleeps.length)<7) insights.push({type:'warn',msg:'Average sleep is below 7 hours. Testosterone recovery is compromised. Prioritize the 12 AM bedtime.'});
+  if(weakHabits.length) insights.push({type:'warn',msg:`Weakest habits this week: ${weakHabits.slice(0,2).map(t=>t.title).join(', ')}. Focus here next week.`});
+  if(meta.streak>=7) insights.push({type:'win',msg:`${meta.streak}-day streak. This is where real physical change begins showing.`});
+
+  return (
+    <div className="page">
+      <div className="page-inner">
+        <div className="syne font-800" style={{fontSize:22,marginBottom:4}}>Monthly Report</div>
+        <div style={{fontSize:12,color:'var(--muted)',marginBottom:16}}>What improved, what needs work, where to focus</div>
+
+        {/* Score card */}
+        <div style={{background:'linear-gradient(135deg,rgba(74,222,128,0.08),rgba(56,189,248,0.08))',border:'1px solid rgba(74,222,128,0.15)',borderRadius:16,padding:20,marginBottom:12,textAlign:'center'}}>
+          <div style={{fontSize:11,color:'var(--accent)',fontWeight:600,textTransform:'uppercase',letterSpacing:1,marginBottom:8}}>30-Day Compliance Score</div>
+          <div className="syne font-800" style={{fontSize:56,color:avg30>=70?'var(--accent)':avg30>=50?'var(--warn)':'var(--danger)',lineHeight:1}}>{avg30}%</div>
+          <div style={{fontSize:13,color:'var(--text2)',marginTop:8}}>
+            {avg30>=80?'Outstanding. Keep this up.':avg30>=60?'Solid progress. Room to grow.':'Early days. Focus on the basics.'}
+          </div>
+        </div>
+
+        {/* Stats grid */}
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:12}}>
+          {[
+            {label:'Perfect Days',val:bestDays,sub:'80%+ completion',color:'#4ade80'},
+            {label:'Best Streak',val:`${meta.best}d`,sub:'consecutive days',color:'#fbbf24'},
+            {label:'Avg Sleep',val:`${sleeps.length?(sleeps.reduce((a,b)=>a+b,0)/sleeps.length).toFixed(1):'-'}h`,sub:'logged nights',color:'#38bdf8'},
+            {label:'Avg Energy',val:energies.length?(energies.reduce((a,b)=>a+b,0)/energies.length).toFixed(1):'-',sub:'out of 5',color:'#fb923c'},
+          ].map((s,i)=>(
+            <div key={i} style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:12,padding:14}}>
+              <div className="syne font-800" style={{fontSize:24,color:s.color}}>{s.val}</div>
+              <div style={{fontSize:12,fontWeight:500,marginTop:2}}>{s.label}</div>
+              <div style={{fontSize:10,color:'var(--muted)',marginTop:1}}>{s.sub}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Weight trend */}
+        {wChange && (
+          <div className="card">
+            <div className="sec-title mb-8">Weight Trend</div>
+            <div style={{display:'flex',alignItems:'center',gap:16}}>
+              <div style={{textAlign:'center'}}>
+                <div style={{fontSize:11,color:'var(--muted)'}}>Start</div>
+                <div className="syne font-700" style={{fontSize:20}}>{wStart}kg</div>
+              </div>
+              <div style={{flex:1,height:2,background:'var(--border)',position:'relative'}}>
+                <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',fontSize:20}}>{wChange<0?'→📉':'→📈'}</div>
+              </div>
+              <div style={{textAlign:'center'}}>
+                <div style={{fontSize:11,color:'var(--muted)'}}>Now</div>
+                <div className="syne font-700" style={{fontSize:20,color:wChange<0?'var(--accent)':'var(--danger)'}}>{wEnd}kg</div>
+              </div>
+            </div>
+            <div style={{textAlign:'center',marginTop:10,fontSize:13,color:wChange<0?'var(--accent)':'var(--danger)',fontWeight:600}}>
+              {wChange<0?`↓ ${Math.abs(wChange)}kg lost`:`↑ ${wChange}kg gained`}
+            </div>
+          </div>
+        )}
+
+        {/* AI Insights */}
+        <div className="card">
+          <div className="sec-title mb-12">Aria's Analysis</div>
+          {insights.length===0 && <div style={{fontSize:13,color:'var(--muted)'}}>Start logging daily entries to see personalized insights here.</div>}
+          {insights.map((ins,i)=>(
+            <div key={i} style={{
+              padding:'12px 14px',marginBottom:8,borderRadius:10,
+              background:ins.type==='win'?'rgba(74,222,128,0.06)':ins.type==='ok'?'rgba(56,189,248,0.06)':'rgba(251,191,36,0.06)',
+              borderLeft:`3px solid ${ins.type==='win'?'var(--accent)':ins.type==='ok'?'var(--accent2)':'var(--warn)'}`,
+            }}>
+              <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.5}}>
+                <span style={{fontWeight:600,color:ins.type==='win'?'var(--accent)':ins.type==='ok'?'var(--accent2)':'var(--warn)'}}>
+                  {ins.type==='win'?'✓ Win: ':ins.type==='ok'?'→ Note: ':' Focus: '}
+                </span>
+                {ins.msg}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Next focus */}
+        <div className="card" style={{background:'linear-gradient(135deg,rgba(56,189,248,0.06),rgba(167,139,250,0.06))',borderColor:'rgba(56,189,248,0.15)'}}>
+          <div className="sec-title mb-8" style={{color:'var(--accent2)'}}>Next 7 Days — Priority Focus</div>
+          {weakHabits.slice(0,3).map((t,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+              <div style={{width:20,height:20,borderRadius:50,background:'var(--surface2)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'var(--accent2)',flexShrink:0}}>{i+1}</div>
+              <div style={{fontSize:13}}>{t.title}</div>
+            </div>
+          ))}
+          {weakHabits.length===0 && <div style={{fontSize:13,color:'var(--accent)',fontWeight:500}}>All habits on track this week. Maintain the momentum.</div>}
+        </div>
+
+        {/* Retest reminder */}
+        <div className="card" style={{borderColor:'rgba(244,114,182,0.3)'}}>
+          <div className="sec-title mb-8" style={{color:'var(--accent4)'}}>Blood Retest Reminder</div>
+          <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.5}}>
+            Retest in <strong style={{color:'var(--text)'}}>May 2026</strong> (3 months from plan start). Track: Testosterone (target 400+), Vitamin D (target 35+), B12 (target 300+), Lipid Panel.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+// ─── ROOT APP ─────────────────────────────────────────────────────────────────
+function App() {
+  const [tab, setTab] = useState('today');
+  const [tasks, setTasks] = useState(DB.get('custom_tasks') || DEFAULT_TASKS);
+
+  useEffect(() => {
+    if (Notification?.permission === 'granted') scheduleNotifications(tasks);
+  }, [tasks]);
+
+  const tabs = [
+    { id:'today', label:'Today', icon: <svg fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> },
+    { id:'analytics', label:'Analytics', icon: <svg fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg> },
+    { id:'report', label:'Report', icon: <svg fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> },
+    { id:'customize', label:'Settings', icon: <svg fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> },
+  ];
+
+  return (
+    <>
+      <div className="ambient"/>
+      {tab==='today' && <TodayTab tasks={tasks} setTasks={setTasks}/>}
+      {tab==='analytics' && <AnalyticsTab tasks={tasks}/>}
+      {tab==='report' && <ReportTab tasks={tasks}/>}
+      {tab==='customize' && <CustomizeTab tasks={tasks} setTasks={setTasks}/>}
+      <nav className="bnav">
+        {tabs.map(t=>(
+          <button key={t.id} className={`bnav-item${tab===t.id?' active':''}`} onClick={()=>setTab(t.id)}>
+            {t.icon}
+            <span>{t.label}</span>
+          </button>
+        ))}
+      </nav>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
